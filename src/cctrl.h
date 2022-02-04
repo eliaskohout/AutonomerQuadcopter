@@ -2,7 +2,8 @@
 #define CCTRL_H
 
 int cctrl_init();
-void cctrl_m_start();
-void cctrl_m_stop();
+void cctrl_toggle_motors();
+void cctrl_rise(int speed, int time);
 
 #endif
+

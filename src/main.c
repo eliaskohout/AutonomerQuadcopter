@@ -7,11 +7,11 @@
 
 static void arg_parser(char* input) {
     if ( strcmp(input, "m_start\n") == 0 )  {
-	    cctrl_m_start();
+	    cctrl_toggle_motors();
 	    printf("# Motor wurde gestartet\n");
-    } else if ( strcmp(input, "m_stop\n") == 0 ) {
-	    cctrl_m_stop();
-	    printf("# Motor wurde gestoppt\n");
+    } else if ( strcmp(input, "rise\n") == 0 ) {
+	    cctrl_rise(20, 1);
+	    printf("# Drone steigt...\n");
     }
 }
 
@@ -20,7 +20,7 @@ int main(void) {
 	if (cctrl_init()){
 	  return(-1);
 	}
-	
+
 	while(1){
 		char input[20] = "";
 
@@ -30,3 +30,4 @@ int main(void) {
 		arg_parser(&input[0]);
 	}
     }
+

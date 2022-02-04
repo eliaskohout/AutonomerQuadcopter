@@ -19,7 +19,7 @@ static void* _cctrl_serial_write_loop(){
 }
 
 int cctrl_init() {
-	serial = open("/dev/serial0", O_RDWR | O_NOCTTY ); 
+	serial = open("/dev/serial0", O_RDWR | O_NOCTTY );
 	if (serial == -1){
 	  printf ("Error: Serialverbindung konnte nicht aufgebaut werden.");
 	  return(-1);
@@ -33,13 +33,13 @@ int cctrl_init() {
 	options.c_cflag |= CREAD;
 	cfmakeraw(&options);
 	tcsetattr(serial, TCSANOW, &options);
-	
+
 	pthread_create(&thread_id_serial_write_loop, NULL, _cctrl_serial_write_loop, NULL);
-	
+
 	return 0;
 }
 
-void cctrl_m_start(){
+void cctrl_toggle_motors(){
 	buf[5] = 0x01;
 	buf[6] = 0x01;
 	sleep(1);
@@ -47,10 +47,9 @@ void cctrl_m_start(){
 	buf[6] = 0x00;
 }
 
-void cctrl_m_stop(){
-	buf[5] = 0x02;
-	buf[6] = 0x02;
-	sleep(1);
-	buf[5] = 0x00;
-	buf[6] = 0x00;
+void cctrl_rise(int speed, int time){
+	buf[3] += speed;
+	sleep(time);
+	buf[3] -= speed;
 }
+

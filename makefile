@@ -7,8 +7,8 @@ build/main.o: src/main.c build
 build/cctrl.o: src/cctrl.c build
 	gcc -c -o build/cctrl.o src/cctrl.c
 
-built:
-	mkdir -p built
+build:
+	mkdir -p build
 
 clean:
 	rm build/*
