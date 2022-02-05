@@ -6,12 +6,16 @@
 
 
 static void arg_parser(char* input) {
-    if ( strcmp(input, "m_start\n") == 0 )  {
+    if ( strcmp(input, "toggle_motor\n") == 0 )  {
 	    cctrl_toggle_motors();
 	    printf("# Motor wurde gestartet\n");
     } else if ( strcmp(input, "rise\n") == 0 ) {
-	    cctrl_rise(20, 1);
 	    printf("# Drone steigt...\n");
+	    vector3d v = {0,0,10};
+	    cctrl_move(v, 1);
+    } else if ( strcmp(input, "calibrate\n") == 0 ) {
+	    printf("# Drone wird calibriert...\n");
+	    cctrl_calibrate_gyro();
     }
 }
 
