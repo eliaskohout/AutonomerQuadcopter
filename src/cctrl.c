@@ -45,7 +45,7 @@ int cctrl_init() {
 	cfmakeraw(&options);
 	tcsetattr(serial, TCSANOW, &options);
 
-	pthread_create(&thread_id_serial_write_loop, NULL, _cctrl_serial_write_loop, NULL);
+	pthread_create(&thread_id_serial_write_loop, NULL, &_cctrl_serial_write_loop, NULL);
 
 	return 0;
 }
@@ -53,7 +53,7 @@ int cctrl_init() {
 void cctrl_calibrate_gyro(){
 	buf[5] = 0x80;
 	buf[6] = 0x00;
-	sleep(1);
+	sleep(4);
 	buf[5] = 0x00;
 }
 
@@ -66,6 +66,7 @@ void cctrl_toggle_motors(){
 }
 
 static void* _cctrl_move_vertically(void* parm){
+    pthread_detach(pthread_self());
 	int* param = (int*) parm;
 	int speed = param[0];
 	int seconds = param[1];
@@ -75,10 +76,11 @@ static void* _cctrl_move_vertically(void* parm){
 	sleep(seconds);
 	buf[3] -= speed;
 	buf[6] -= speed;
-	return NULL;
+    pthread_exit(NULL);
 }
 
 static void* _cctrl_move_sideways(void* parm){
+    pthread_detach(pthread_self());
 	int* param = (int*) parm;
 	int speed = param[0];
 	int seconds = param[1];
@@ -86,10 +88,11 @@ static void* _cctrl_move_sideways(void* parm){
 	buf[1] += speed;
 	sleep(seconds);
 	buf[1] -= speed;
-	return NULL;
+    pthread_exit(NULL);
 }
 
 static void* _cctrl_move_ahead(void* parm){
+    pthread_detach(pthread_self());
 	int* param = (int*) parm;
 	int speed = param[0];
 	int seconds = param[1];
@@ -97,7 +100,7 @@ static void* _cctrl_move_ahead(void* parm){
 	buf[2] += speed;
 	sleep(seconds);
 	buf[2] -= speed;
-	return NULL;
+    pthread_exit(NULL);
 }
 
 void cctrl_move( vector3d* v, int seconds){
@@ -105,17 +108,17 @@ void cctrl_move( vector3d* v, int seconds){
 	int y_speed = (v -> y / seconds) * 1;
 	int z_speed = (v -> z / seconds) * 1;
 
-	int *param = (int *) malloc(2 * sizeof(int));
+	static int param[2];  // static damit es von den Threads (z insbesondere) gelesen werden kann
 	pthread_t thread_id;
 
-	param[0] = x_speed;
-	param[1] = seconds;
-	pthread_create(&thread_id, NULL, _cctrl_move_ahead, (void *) param); // x
+    param[1] = seconds;
+    param[0] = x_speed;
+	pthread_create(&thread_id, NULL, &_cctrl_move_ahead, (void *) param); // x
 
 	param[0] = y_speed;
-	pthread_create(&thread_id, NULL, _cctrl_move_sideways, (void *) param); // y
+	pthread_create(&thread_id, NULL, &_cctrl_move_sideways, (void *) param); // y
 
 	param[0] = z_speed;
-	pthread_create(&thread_id, NULL, _cctrl_move_vertically, (void *) param); // z
+	pthread_create(&thread_id, NULL, &_cctrl_move_vertically, (void *) param); // z
 }
 

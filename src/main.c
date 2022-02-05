@@ -12,9 +12,9 @@ static void arg_parser(char* input) {
     } else if ( strcmp(input, "rise\n") == 0 ) {
 	    printf("# Drone steigt...\n");
 	    vector3d v = {0,0,10};
-	    cctrl_move(v, 1);
+	    cctrl_move(&v, 1);
     } else if ( strcmp(input, "calibrate\n") == 0 ) {
-	    printf("# Drone wird calibriert...\n");
+	    printf("# Drone wird kalibriert...\n");
 	    cctrl_calibrate_gyro();
     }
 }

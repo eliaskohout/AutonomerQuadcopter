@@ -8,7 +8,7 @@ typedef struct {
 int cctrl_init();
 void cctrl_toggle_motors();
 void cctrl_calibrate_gyro();
-void cctrl_move( vector3d v, int seconds);
+void cctrl_move( vector3d* v, int seconds);
 
 #endif
 
