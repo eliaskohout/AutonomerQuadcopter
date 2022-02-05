@@ -52,9 +52,10 @@ int cctrl_init() {
 
 void cctrl_calibrate_gyro(){
 	buf[5] = 0x80;
-	buf[6] = 0x00;
-	sleep(4);
+	buf[6] = 0x80;
+	sleep(2);
 	buf[5] = 0x00;
+	buf[6] = 0x00;
 }
 
 void cctrl_toggle_motors(){
