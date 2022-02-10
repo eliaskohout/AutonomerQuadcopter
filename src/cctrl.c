@@ -5,13 +5,17 @@
 #include <unistd.h>
 #include <pthread.h>
 
+static const int CCTRL_X_ADJUST = 0; // Summand für buf[2] (Bewegung vorne/hinten)
+static const int CCTRL_Y_ADJUST = 0; // Summand für buf[1] (Bewegung rechts/links)
+
+static const int CCTRL_MOVE_X_ADJUST = 10; // Multiplikator für x in cctrl_move()
+static const int CCTRL_MOVE_Y_ADJUST = 10; // Multiplikator für y in cctrl_move()
+static const int CCTRL_MOVE_Z_ADJUST = 10; // Multiplikator für z in cctrl_move()
 
 static int serial;
 static pthread_t thread_id_serial_write_loop;
 
 static char buf[] = {0x66, 0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x99};
-// buf[1] ändern als Ausgleich fürs abdriften nach rechts/links
-// buf[2] ändern als Ausgleich fürs abdriften nach vorne/hinten
 
 typedef struct {
 	int x; int y; int z;
@@ -23,6 +27,10 @@ static void _cctrl_log( char* str ){
 }
 
 static void* _cctrl_serial_write_loop(){
+	/*
+	   Muss als Thread ausgeführt werden. Schreibt buf über den serial-Port, um die Befehle
+	   an die Drone zu übermitteln.
+	*/
 	while(1){
 		write(serial, buf, 8);
 		usleep(100000);
@@ -45,12 +53,17 @@ int cctrl_init() {
 	cfmakeraw(&options);
 	tcsetattr(serial, TCSANOW, &options);
 
+	buf[2] += CCTRL_X_ADJUST;
+	buf[1] += CCTRL_Y_ADJUST;
 	pthread_create(&thread_id_serial_write_loop, NULL, &_cctrl_serial_write_loop, NULL);
 
 	return 0;
 }
 
 void cctrl_calibrate_gyro(){
+	/*
+	   Setzt für eine Sekunde die Werte von buf sodass das Gyroskop kalibriert wrid.
+	*/
 	buf[5] = 0x80;
 	buf[6] = 0x80;
 	sleep(2);
@@ -59,6 +72,11 @@ void cctrl_calibrate_gyro(){
 }
 
 void cctrl_toggle_motors(){
+	/*
+	   Setzt für eine Sekunde die Werte von buf sodass die Motoren gestartet werden.
+	   Laufen die Motoren schon, werden sie wieder gestoppt. Die Motoren müssen laufen,
+	   um die Drone zu starten.
+	*/
 	buf[5] = 0x01;
 	buf[6] = 0x01;
 	sleep(1);
@@ -67,7 +85,16 @@ void cctrl_toggle_motors(){
 }
 
 static void* _cctrl_move_vertically(void* parm){
-    pthread_detach(pthread_self());
+	/*
+	   Muss als Thread ausgeführt werden. Ändert die Werte in buf für ein bestimmte
+	   Zeit sodass sich die Drone steigt/ sinkt.
+	   ::void* param:: Pointer der auf ein int-Array zeigt. Das Array hat zwei
+	   		   Parameter.
+			   param[0] - Der Wert um den buf erhöht wird.
+			   param[1] - Die Sekunden bis der Wert von buf zurückgesetzt
+			   wird.
+	*/
+	pthread_detach(pthread_self());
 	int* param = (int*) parm;
 	int speed = param[0];
 	int seconds = param[1];
@@ -77,11 +104,20 @@ static void* _cctrl_move_vertically(void* parm){
 	sleep(seconds);
 	buf[3] -= speed;
 	buf[6] -= speed;
-    pthread_exit(NULL);
+	pthread_exit(NULL);
 }
 
 static void* _cctrl_move_sideways(void* parm){
-    pthread_detach(pthread_self());
+	/*
+	   Muss als Thread ausgeführt werden. Ändert die Werte in buf für ein bestimmte
+	   Zeit sodass sich die Drone sich nach rechts/ links bewegt.
+	   ::void* param:: Pointer der auf ein int-Array zeigt. Das Array hat zwei
+	   		   Parameter.
+			   param[0] - Der Wert um den buf erhöht wird.
+			   param[1] - Die Sekunden bis der Wert von buf zurückgesetzt
+			   wird.
+	*/
+	pthread_detach(pthread_self());
 	int* param = (int*) parm;
 	int speed = param[0];
 	int seconds = param[1];
@@ -89,11 +125,20 @@ static void* _cctrl_move_sideways(void* parm){
 	buf[1] += speed;
 	sleep(seconds);
 	buf[1] -= speed;
-    pthread_exit(NULL);
+	pthread_exit(NULL);
 }
 
 static void* _cctrl_move_ahead(void* parm){
-    pthread_detach(pthread_self());
+	/*
+	   Muss als Thread ausgeführt werden. Ändert die Werte in buf für ein bestimmte
+	   Zeit sodass sich die Drone sich nach vorne/ hinten bewegt.
+	   ::void* param:: Pointer der auf ein int-Array zeigt. Das Array hat zwei
+	   		   Parameter.
+			   param[0] - Der Wert um den buf erhöht wird.
+			   param[1] - Die Sekunden bis der Wert von buf zurückgesetzt
+			   wird.
+	*/
+	pthread_detach(pthread_self());
 	int* param = (int*) parm;
 	int speed = param[0];
 	int seconds = param[1];
@@ -101,19 +146,19 @@ static void* _cctrl_move_ahead(void* parm){
 	buf[2] += speed;
 	sleep(seconds);
 	buf[2] -= speed;
-    pthread_exit(NULL);
+	pthread_exit(NULL);
 }
 
 void cctrl_move( vector3d* v, int seconds){
-	int x_speed = (v -> x / seconds) * 1;
-	int y_speed = (v -> y / seconds) * 1;
-	int z_speed = (v -> z / seconds) * 1;
+	int x_speed = (v -> x / seconds) * CCTRL_MOVE_X_ADJUST;
+	int y_speed = (v -> y / seconds) * CCTRL_MOVE_Y_ADJUST;
+	int z_speed = (v -> z / seconds) * CCTRL_MOVE_Z_ADJUST;
 
 	static int param[2];  // static damit es von den Threads (z insbesondere) gelesen werden kann
 	pthread_t thread_id;
 
-    param[1] = seconds;
-    param[0] = x_speed;
+    	param[1] = seconds;
+    	param[0] = x_speed;
 	pthread_create(&thread_id, NULL, &_cctrl_move_ahead, (void *) param); // x
 
 	param[0] = y_speed;

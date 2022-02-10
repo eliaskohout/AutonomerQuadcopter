@@ -11,8 +11,11 @@ static void arg_parser(char* input) {
 	    printf("# Motor wurde gestartet\n");
     } else if ( strcmp(input, "rise\n") == 0 ) {
 	    printf("# Drone steigt...\n");
-	    vector3d v = {0,0,10};
+	    vector3d v = {0,0,5};
 	    cctrl_move(&v, 1);
+    } else if ( strcmp(input, "sink\n") == 0 ) {
+	    printf("# Drone sinkt...\n");
+	    vector3d v = {0,0,-5};
     } else if ( strcmp(input, "calibrate\n") == 0 ) {
 	    printf("# Drone wird kalibriert...\n");
 	    cctrl_calibrate_gyro();
