@@ -96,7 +96,7 @@ static void* _cctrl_move_vertically(void* parm){
 	*/
 	pthread_detach(pthread_self());
 	int* param = (int*) parm;
-	int speed = param[0];
+	int speed = (abs(param[0]) < 127) ? param[0] : (param[0] > 0) ? 127 : -127;
 	int seconds = param[1];
 
 	buf[3] += speed;
@@ -119,7 +119,7 @@ static void* _cctrl_move_sideways(void* parm){
 	*/
 	pthread_detach(pthread_self());
 	int* param = (int*) parm;
-	int speed = param[0];
+	int speed = (abs(param[0]) < 127) ? param[0] : (param[0] > 0) ? 127 : -127;
 	int seconds = param[1];
 
 	buf[1] += speed;
@@ -140,7 +140,7 @@ static void* _cctrl_move_ahead(void* parm){
 	*/
 	pthread_detach(pthread_self());
 	int* param = (int*) parm;
-	int speed = param[0];
+	int speed = (abs(param[0]) < 127) ? param[0] : (param[0] > 0) ? 127 : -127;
 	int seconds = param[1];
 
 	buf[2] += speed;

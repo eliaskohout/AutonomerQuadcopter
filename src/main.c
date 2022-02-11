@@ -20,21 +20,18 @@ static void split_arguments( char* input, char** out) {
 }
 
 static void arg_parser(char* input) {
-	char* a_arg_ptr[10];
-	split_arguments(input, a_arg_ptr);
+	char* a_arg1 = strtok(input, " ");
+	char* a_arg2 = strtok(NULL, " ");
+	char* a_arg3 = strtok(NULL, " ");
 
-    	if ( strcmp(input, "toggle_motor\n") == 0 )  {
+    	if ( strcmp(a_arg1, "toggle_motor\n") == 0 )  {
 	    	cctrl_toggle_motors();
 	    	printf("# Motor wurde gestartet\n");
-    	} else if ( strcmp(input, "rise\n") == 0 ) {
-		vector3d v = {0,0, (int)strtol(a_arg_ptr[1], NULL, 10) };
-	    	cctrl_move(&v, (int) strtol(a_arg_ptr[2], NULL, 10) );
-	    	printf("# Drone steigt...\n");
-	} else if ( strcmp(input, "sink\n") == 0 ) {
-	    	printf("# Drone sinkt...\n");
-	    	vector3d v = {0,0,-5};
-	    	cctrl_move(&v, 1);
-    	} else if ( strcmp(input, "calibrate\n") == 0 ) {
+    	} else if ( strcmp(a_arg1, "rise") == 0 ) {
+		vector3d v = {0,0, (int)strtol(a_arg2, NULL, 10) };
++               cctrl_move(&v, (int)strtol(a_arg3, NULL, 10) );
++               printf("# Drone steigt/ sinkt...\n");
+    	} else if ( strcmp(a_arg1, "calibrate\n") == 0 ) {
 	    	printf("# Drone wird kalibriert...\n");
 	    	cctrl_calibrate_gyro();
     	}
