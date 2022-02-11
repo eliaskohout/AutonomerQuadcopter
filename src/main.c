@@ -1,25 +1,44 @@
 #include <stdio.h>
 #include <unistd.h>  /* UNIX Standard Definitions      */
 #include <string.h>
+#include <stdlib.h>
 
 #include "cctrl.h"
 
+static char** split_arguments( char* input, char** out) {
+	int anzahl_argumente = 0;
+	int input_length = strlen(input);
+
+	for (int i = 0; i<input_length; i++){
+		if( input[i] == ' ' ){
+			anzahl_argumente++;
+			input[i] = '\0';
+			out[anzahl_argumente-1] = &input[i+1];
+		}
+		if(anzahl_argumente == 10) { break; }
+	}
+	return out;
+}
 
 static void arg_parser(char* input) {
-    if ( strcmp(input, "toggle_motor\n") == 0 )  {
-	    cctrl_toggle_motors();
-	    printf("# Motor wurde gestartet\n");
-    } else if ( strcmp(input, "rise\n") == 0 ) {
-	    printf("# Drone steigt...\n");
-	    vector3d v = {0,0,5};
-	    cctrl_move(&v, 1);
-    } else if ( strcmp(input, "sink\n") == 0 ) {
-	    printf("# Drone sinkt...\n");
-	    vector3d v = {0,0,-5};
-    } else if ( strcmp(input, "calibrate\n") == 0 ) {
-	    printf("# Drone wird kalibriert...\n");
-	    cctrl_calibrate_gyro();
-    }
+	char* a_arg_ptr[10];
+	char** args = split_arguments(input, a_arg_ptr);
+
+    	if ( strcmp(input, "toggle_motor\n") == 0 )  {
+	    	cctrl_toggle_motors();
+	    	printf("# Motor wurde gestartet\n");
+    	} else if ( strcmp(input, "rise\n") == 0 ) {
+		vector3d v = {0,0, (int)strtol(args[1], NULL, 10) };
+	    	cctrl_move(&v, (int) strtol(args[2], NULL, 10) );
+	    	printf("# Drone steigt...\n");
+	} else if ( strcmp(input, "sink\n") == 0 ) {
+	    	printf("# Drone sinkt...\n");
+	    	vector3d v = {0,0,-5};
+	    	cctrl_move(&v, 1);
+    	} else if ( strcmp(input, "calibrate\n") == 0 ) {
+	    	printf("# Drone wird kalibriert...\n");
+	    	cctrl_calibrate_gyro();
+    	}
 }
 
 
