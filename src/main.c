@@ -5,7 +5,7 @@
 
 #include "cctrl.h"
 
-static char** split_arguments( char* input, char** out) {
+static void split_arguments( char* input, char** out) {
 	int anzahl_argumente = 0;
 	int input_length = strlen(input);
 
@@ -17,19 +17,18 @@ static char** split_arguments( char* input, char** out) {
 		}
 		if(anzahl_argumente == 10) { break; }
 	}
-	return out;
 }
 
 static void arg_parser(char* input) {
 	char* a_arg_ptr[10];
-	char** args = split_arguments(input, a_arg_ptr);
+	split_arguments(input, a_arg_ptr);
 
     	if ( strcmp(input, "toggle_motor\n") == 0 )  {
 	    	cctrl_toggle_motors();
 	    	printf("# Motor wurde gestartet\n");
     	} else if ( strcmp(input, "rise\n") == 0 ) {
-		vector3d v = {0,0, (int)strtol(args[1], NULL, 10) };
-	    	cctrl_move(&v, (int) strtol(args[2], NULL, 10) );
+		vector3d v = {0,0, (int)strtol(a_arg_ptr[1], NULL, 10) };
+	    	cctrl_move(&v, (int) strtol(a_arg_ptr[2], NULL, 10) );
 	    	printf("# Drone steigt...\n");
 	} else if ( strcmp(input, "sink\n") == 0 ) {
 	    	printf("# Drone sinkt...\n");
